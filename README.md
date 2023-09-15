@@ -12,11 +12,15 @@ See [MP Document](./docs/MP2.CS425.FA23.pdf)
 
 ### Build
 
-TBD
+```bash
+make build
+```
 
 ## Usage
 
-TBD
+```bash
+./bin/msl [command]
+```
 
 ## Testing
 
