@@ -1,0 +1,32 @@
+version: "3"
+services:
+  dev:
+    container_name: dev
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: msl-dev
+    hostname: dev
+    volumes:
+      - .:/app
+      - /app/bin
+  m1:
+    container_name: dev-m1
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: msl-dev
+    hostname: fa23-cs425-8701.cs.illinois.edu
+    volumes:
+      - .:/app
+      - /app/bin
+  m2:
+    container_name: dev-m2
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: msl-dev
+    hostname: fa23-cs425-8702.cs.illinois.edu
+    volumes:
+      - .:/app
+      - /app/bin

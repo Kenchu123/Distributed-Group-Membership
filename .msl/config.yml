@@ -1,4 +1,7 @@
 machines:
+  - hostname: "kenmac.local"
+    port: "7132"
+    id: "0"
   - hostname: "fa23-cs425-8701.cs.illinois.edu"
     port: "7132"
     id: "1"

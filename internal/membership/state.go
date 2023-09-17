@@ -5,7 +5,8 @@ type State string
 
 // Constants for the different states of a member
 const (
-	Alive  State = "ALIVE"
-	Failed State = "FAILED"
-	Left   State = "LEFT"
+	ALIVE     State = "ALIVE"
+	FAILED    State = "FAILED"
+	LEFT      State = "LEFT"
+	SUSPECTED State = "SUSPECTED"
 )

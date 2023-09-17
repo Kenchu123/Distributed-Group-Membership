@@ -14,4 +14,9 @@ func Init(logPath string) {
 		panic(err)
 	}
 	logrus.SetOutput(io.MultiWriter(f, os.Stdout))
+	logrus.SetFormatter(&logrus.TextFormatter{
+		ForceColors:   true,
+		FullTimestamp: true,
+	})
+	logrus.SetLevel(logrus.InfoLevel)
 }

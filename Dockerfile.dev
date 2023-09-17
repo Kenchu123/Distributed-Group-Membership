@@ -1,0 +1,4 @@
+# first stage
+FROM golang:1.20.7-alpine3.17 as builder
+WORKDIR /app
+CMD ["tail", "-f", "/dev/null"]

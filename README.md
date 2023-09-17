@@ -18,8 +18,28 @@ make build
 
 ## Usage
 
+### Serve
+
+`serve` command start the command server and wait for commands from client.
+
 ```bash
-./bin/msl [command]
+./bin/msl serve
+```
+
+### Join
+
+`member join` command tells the machine to join the group.
+
+```bash
+./bin/msl member join
+```
+
+### Leave
+
+`member leave` command tells the machine to leave the group.
+
+```bash
+./bin/msl member leave
 ```
 
 ## Testing

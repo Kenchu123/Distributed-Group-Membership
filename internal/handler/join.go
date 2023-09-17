@@ -1,10 +1,13 @@
 package handler
 
-import "github.com/sirupsen/logrus"
+import (
+	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/heartbeat"
+)
 
 type JoinHandler struct{}
 
 func (h *JoinHandler) Handle(args []string) (string, error) {
-	logrus.Info("Self joining the group")
-	return "Joining the group", nil
+	heartbeat := heartbeat.GetInstance()
+	heartbeat.Start()
+	return "Start Heartbeating", nil
 }
