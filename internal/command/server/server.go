@@ -28,7 +28,7 @@ func New(port string) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to listen on %s:%s: %w", hostName, port, err)
 	}
-	logrus.Infof("Listening on %s:%s\n", hostName, port)
+	logrus.Infof("Listening on %s:%s", hostName, port)
 	return &Server{
 		server: server,
 	}, nil
@@ -40,7 +40,7 @@ func (s *Server) Run() {
 	for {
 		conn, err := s.accept()
 		if err != nil {
-			logrus.Errorf("failed to accept new connection: %v\n", err)
+			logrus.Errorf("failed to accept new connection: %v", err)
 			continue
 		}
 		go handleRecieveCommand(conn)
@@ -66,7 +66,7 @@ func handleRecieveCommand(conn net.Conn) {
 	defer conn.Close()
 	_, content, err := socket.Receive(conn)
 	if err != nil {
-		logrus.Errorf("failed to receive message: %v\n", err)
+		logrus.Errorf("failed to receive message: %v", err)
 		return
 	}
 
@@ -78,7 +78,7 @@ func handleRecieveCommand(conn net.Conn) {
 		return
 	}
 	if _, err = socket.Send(conn, []byte(result)); err != nil {
-		logrus.Errorf("failed to send message: %v\n", err)
+		logrus.Errorf("failed to send message: %v", err)
 		return
 	}
 }

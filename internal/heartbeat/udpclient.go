@@ -10,8 +10,8 @@ type UdpClient struct {
 }
 
 // NewUdpClient creates a new UDP client
-func NewUdpClient(ip string) (*UdpClient, error) {
-	addr, err := net.ResolveUDPAddr("udp", ip+":"+HEARTBEAT_PORT)
+func NewUdpClient(hostname string) (*UdpClient, error) {
+	addr, err := net.ResolveUDPAddr("udp", hostname+":"+HEARTBEAT_PORT)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve udp address: %w", err)
 	}

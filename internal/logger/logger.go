@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 
+	nested "github.com/antonfisher/nested-logrus-formatter"
 	"github.com/sirupsen/logrus"
 )
 
@@ -14,9 +15,11 @@ func Init(logPath string) {
 		panic(err)
 	}
 	logrus.SetOutput(io.MultiWriter(f, os.Stdout))
-	logrus.SetFormatter(&logrus.TextFormatter{
-		ForceColors:   true,
-		FullTimestamp: true,
+	logrus.SetFormatter(&nested.Formatter{
+		HideKeys:        true,
+		FieldsOrder:     []string{"component", "category"},
+		TimestampFormat: "15:04:05",
+		NoColors:        true,
 	})
-	logrus.SetLevel(logrus.InfoLevel)
+	logrus.SetLevel(logrus.DebugLevel)
 }

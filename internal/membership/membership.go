@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -40,7 +41,7 @@ func (m *Membership) IncreaseSelfHeartbeat() {
 	m.Members[m.ID].IncreaseHeartbeat()
 }
 
-func (m *Membership) UpdateSelftState(state State) {
+func (m *Membership) UpdateSelfState(state State) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.Members[m.ID].UpdateState(m.Members[m.ID].Heartbeat, state)
@@ -110,6 +111,29 @@ func (m *Membership) updateMember(member *Member) {
 	}
 }
 
+// DetectFailure detects failure
+func (m *Membership) DetectFailure(failureDetectionTimeout time.Duration) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for _, member := range m.Members {
+		if member.State == ALIVE && time.Now().UnixMilli() > member.LastUpdateTime+failureDetectionTimeout.Milliseconds() {
+			// TODO: suspected
+			member.UpdateState(member.Heartbeat, FAILED)
+		}
+	}
+}
+
+// CleanUp cleans up the membership list
+func (m *Membership) CleanUp(cleanupTimeout time.Duration) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for id, member := range m.Members {
+		if (member.State == FAILED || member.State == LEFT) && time.Now().UnixMilli() > member.LastUpdateTime+cleanupTimeout.Milliseconds() {
+			delete(m.Members, id)
+		}
+	}
+}
+
 // Serialize serializes the membership list
 func Serialize(m *Membership) ([]byte, error) {
 	m.mu.Lock()
@@ -138,10 +162,37 @@ func Deserialize(b []byte) (*Membership, error) {
 
 // String
 func (m *Membership) String() string {
-	return fmt.Sprintf("Membership{ID=%s, Membership=%s}", m.ID, m.Members)
+	return fmt.Sprintf("SelfID: %s\nMembership: %s\n", m.ID, m.Members)
 }
 
 // Get name of member
 func (m *Membership) GetName() string {
-	return strings.Split(m.ID, "-")[0]
+	return strings.Split(m.ID, "_")[0]
+}
+
+// Get heartbeat target members' hostnames
+func (m *Membership) GetHeartbeatTargetMembers() []string {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	// TODO: introducers and algorithms for selecting heartbeat target members
+	hostnames := []string{"fa23-cs425-8701.cs.illinois.edu", "fa23-cs425-8702.cs.illinois.edu"}
+	for i, hostname := range hostnames {
+		if hostname == m.GetName() {
+			hostnames = append(hostnames[:i], hostnames[i+1:]...)
+			break
+		}
+	}
+	return hostnames
+}
+
+// Get snapshot of membership list
+func (m *Membership) GetSnapshot() *Membership {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	snapshot := NewEmpty()
+	snapshot.ID = m.ID
+	for _, member := range m.Members {
+		snapshot.Members[member.ID] = member.GetSnapshot()
+	}
+	return snapshot
 }

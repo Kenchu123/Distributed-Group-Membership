@@ -28,13 +28,13 @@ func NewUdpServer() (*UdpServer, error) {
 
 // serve serves the UDP server
 func (u *UdpServer) Serve(handle func(net.Addr, []byte)) {
-	logrus.Infof("UDP server is listening on %s\n", u.conn.LocalAddr().String())
+	logrus.Infof("UDP server is listening on %s", u.conn.LocalAddr().String())
 	defer u.conn.Close()
 	for {
 		buffer := make([]byte, 1024)
 		_, addr, err := u.conn.ReadFrom(buffer)
 		if err != nil {
-			logrus.Errorf("failed to read from udp server: %v\n", err)
+			logrus.Errorf("failed to read from udp server: %v", err)
 			break
 		}
 		go handle(addr, buffer)

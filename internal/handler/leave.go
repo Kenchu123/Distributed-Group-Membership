@@ -11,8 +11,11 @@ type LeaveHandler struct{}
 
 func (h *LeaveHandler) Handle(args []string) (string, error) {
 	instance := heartbeat.GetInstance()
+	if instance.IsRunning == false {
+		return "Not in the group", nil
+	}
 	// change the state of the node to leave
-	instance.Membership.UpdateSelftState(membership.LEFT)
+	instance.Membership.UpdateSelfState(membership.LEFT)
 	// TODO: fine tuning the time sleep here
 	time.Sleep(heartbeat.HEARTBEAT_INTERVAL * 3)
 	instance.Stop()

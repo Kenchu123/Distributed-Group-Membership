@@ -17,7 +17,7 @@ var serveCmd = &cobra.Command{
 }
 
 func serve(cmd *cobra.Command, args []string) {
-	logger.Init("msl.log")
+	logger.Init("logs/msl.log")
 	server, err := server.New(port)
 	if err != nil {
 		logrus.Fatal(err)

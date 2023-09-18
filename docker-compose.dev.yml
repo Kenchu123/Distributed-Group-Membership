@@ -10,6 +10,7 @@ services:
     volumes:
       - .:/app
       - /app/bin
+      - /app/logs
   m1:
     container_name: dev-m1
     build:
@@ -20,6 +21,7 @@ services:
     volumes:
       - .:/app
       - /app/bin
+      - /app/logs
   m2:
     container_name: dev-m2
     build:
@@ -30,3 +32,4 @@ services:
     volumes:
       - .:/app
       - /app/bin
+      - /app/logs
