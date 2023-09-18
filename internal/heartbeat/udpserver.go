@@ -12,8 +12,8 @@ type UdpServer struct {
 }
 
 // NewUdpServer creates a new UDP server
-func NewUdpServer() (*UdpServer, error) {
-	addr, err := net.ResolveUDPAddr("udp", ":"+HEARTBEAT_PORT)
+func NewUdpServer(port string) (*UdpServer, error) {
+	addr, err := net.ResolveUDPAddr("udp", ":"+port)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve udp address: %w", err)
 	}

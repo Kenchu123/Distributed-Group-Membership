@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/config"
 )
 
 // MemberList is a struct that contains a map of Members
@@ -112,13 +113,25 @@ func (m *Membership) updateMember(member *Member) {
 }
 
 // DetectFailure detects failure
-func (m *Membership) DetectFailure(failureDetectionTimeout time.Duration) {
+func (m *Membership) DetectFailure(config config.FailureDetect) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	for _, member := range m.Members {
-		if member.State == ALIVE && time.Now().UnixMilli() > member.LastUpdateTime+failureDetectionTimeout.Milliseconds() {
-			// TODO: suspected
+		if member.State == ALIVE {
+			if config.Suspicion.Enabled {
+				if time.Now().UnixMilli() > member.LastUpdateTime+config.Suspicion.SuspectTimeout.Milliseconds() {
+					member.UpdateState(member.Heartbeat, SUSPECTED)
+				}
+			} else {
+				if time.Now().UnixMilli() > member.LastUpdateTime+config.FailureTimeout.Milliseconds() {
+					member.UpdateState(member.Heartbeat, FAILED)
+				}
+			}
+			continue
+		}
+		if member.State == SUSPECTED && time.Now().UnixMilli() > member.LastUpdateTime+config.Suspicion.FailureTimeout.Milliseconds() {
 			member.UpdateState(member.Heartbeat, FAILED)
+			continue
 		}
 	}
 }

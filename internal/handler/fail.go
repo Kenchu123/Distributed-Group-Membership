@@ -1,13 +1,12 @@
 package handler
 
 import (
-	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/heartbeat"
+	"os"
 )
 
 type FailHandler struct{}
 
 func (h *FailHandler) Handle(args []string) (string, error) {
-	heartbeat := heartbeat.GetInstance()
-	heartbeat.Stop()
+	os.Exit(1)
 	return "Failing", nil
 }

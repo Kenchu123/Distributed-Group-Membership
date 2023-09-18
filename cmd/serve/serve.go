@@ -7,6 +7,8 @@ import (
 	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/logger"
 )
 
+var configPath string
+var logPath string
 var port string
 
 var serveCmd = &cobra.Command{
@@ -17,8 +19,8 @@ var serveCmd = &cobra.Command{
 }
 
 func serve(cmd *cobra.Command, args []string) {
-	logger.Init("logs/msl.log")
-	server, err := server.New(port)
+	logger.Init(logPath)
+	server, err := server.New(configPath, port)
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -30,5 +32,7 @@ func New() *cobra.Command {
 }
 
 func init() {
+	serveCmd.Flags().StringVarP(&configPath, "config", "c", ".msl/config.yml", "path to config file")
+	serveCmd.Flags().StringVarP(&logPath, "log", "l", "logs/msl.log", "path to log file")
 	serveCmd.Flags().StringVarP(&port, "port", "p", "7132", "port to listen on")
 }

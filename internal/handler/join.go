@@ -7,10 +7,13 @@ import (
 type JoinHandler struct{}
 
 func (h *JoinHandler) Handle(args []string) (string, error) {
-	heartbeat := heartbeat.GetInstance()
-	if heartbeat.IsRunning == true {
+	instance, err := heartbeat.GetInstance()
+	if err != nil {
+		return "", err
+	}
+	if instance.IsRunning == true {
 		return "Already in the group", nil
 	}
-	heartbeat.Start()
+	instance.Start()
 	return "Start Heartbeating", nil
 }

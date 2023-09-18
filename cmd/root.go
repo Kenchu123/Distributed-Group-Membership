@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/cmd/config"
 	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/cmd/member"
 	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/cmd/serve"
 )
@@ -17,5 +18,5 @@ func Execute() error {
 }
 
 func init() {
-	rootCmd.AddCommand(member.New(), serve.New())
+	rootCmd.AddCommand(member.New(), serve.New(), config.New())
 }

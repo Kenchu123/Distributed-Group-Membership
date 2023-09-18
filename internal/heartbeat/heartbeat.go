@@ -1,17 +1,19 @@
 package heartbeat
 
 import (
+	"fmt"
 	"net"
 	"sync"
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/config"
 	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/membership"
 )
 
 type Heartbeat struct {
-	IsRunning bool
-
+	Config     *config.Config
+	IsRunning  bool
 	Membership *membership.Membership
 
 	// ticker
@@ -33,25 +35,35 @@ type Heartbeat struct {
 var lock = &sync.Mutex{}
 var instance *Heartbeat
 
-func GetInstance() *Heartbeat {
+func GetInstance() (*Heartbeat, error) {
 	lock.Lock()
 	defer lock.Unlock()
+	var err error
 	if instance == nil {
-		instance = New()
+		instance, err = New()
+		if err != nil {
+			return nil, err
+		}
 	}
-	return instance
+	return instance, nil
 }
 
 // New creates a new heartbeat
-func New() *Heartbeat {
+func New() (*Heartbeat, error) {
+	conf, err := config.GetInstance()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create a new heartbeat: %w", err)
+	}
 	return &Heartbeat{
+		Config:                  conf,
+		IsRunning:               false,
 		Membership:              nil,
 		heartbeatTicker:         nil,
 		heartbeatTickerDone:     make(chan bool),
 		udpServer:               nil,
 		failureDetectTicker:     nil,
 		failureDetectTickerDone: make(chan bool),
-	}
+	}, nil
 }
 
 // Start starts the heartbeat
@@ -62,7 +74,7 @@ func (h *Heartbeat) Start() {
 		logrus.Errorf("failed to start: %v", err)
 		return
 	}
-	h.udpServer, err = NewUdpServer()
+	h.udpServer, err = NewUdpServer(h.Config.Heartbeat.Port)
 	if err != nil {
 		logrus.Errorf("failed to start: %v", err)
 		return
@@ -76,7 +88,7 @@ func (h *Heartbeat) Start() {
 
 func (h *Heartbeat) startHeartbeating() {
 	logrus.Info("Start heartbeating")
-	h.heartbeatTicker = time.NewTicker(HEARTBEAT_INTERVAL)
+	h.heartbeatTicker = time.NewTicker(h.Config.Heartbeat.Interval)
 	defer h.heartbeatTicker.Stop()
 	for {
 		select {
@@ -95,7 +107,7 @@ func (h *Heartbeat) sendHeartbeat() {
 	logrus.Debug("Heartbeat target members: ", hostnames)
 	for _, hostname := range hostnames {
 		go func(hostname string) {
-			client, err := NewUdpClient(hostname)
+			client, err := NewUdpClient(hostname, h.Config.Heartbeat.Port)
 			if err != nil {
 				logrus.Errorf("failed to create udp client: %v", err)
 				return
@@ -128,7 +140,7 @@ func (h *Heartbeat) receiveHeartbeat(addr net.Addr, buffer []byte) {
 
 func (h *Heartbeat) startDetectingFailure() {
 	logrus.Info("Start detecting failure")
-	h.failureDetectTicker = time.NewTicker(FAILURE_DETECT_INTERVAL)
+	h.failureDetectTicker = time.NewTicker(h.Config.FailureDetect.Interval)
 	defer h.failureDetectTicker.Stop()
 	for {
 		select {
@@ -142,19 +154,19 @@ func (h *Heartbeat) startDetectingFailure() {
 
 func (h *Heartbeat) detectFailure() {
 	logrus.Debug("Detecting failure")
-	h.Membership.DetectFailure(FAILURE_DETECT_TIMEOUT)
+	h.Membership.DetectFailure(h.Config.FailureDetect)
 }
 
 func (h *Heartbeat) startCleaningUp() {
 	logrus.Info("Start cleaning up Membership")
-	h.cleanupTicker = time.NewTicker(MEMBER_CLEANUP_INTERVAL)
+	h.cleanupTicker = time.NewTicker(h.Config.Cleanup.Interval)
 	defer h.cleanupTicker.Stop()
 	for {
 		select {
 		case <-h.cleanupTickerDone:
 			return
 		case <-h.cleanupTicker.C:
-			h.Membership.CleanUp(MEMBER_CLEANUP_TIMEOUT)
+			h.Membership.CleanUp(h.Config.Cleanup.Timeout)
 		}
 	}
 }
@@ -186,4 +198,14 @@ func (h *Heartbeat) stopDetectingFailure() {
 func (h *Heartbeat) stopCleaningUp() {
 	logrus.Info("Stop cleaning up Membership")
 	h.cleanupTickerDone <- true
+}
+
+func (h *Heartbeat) SetSuspicion(enabled bool) {
+	logrus.Info("Set suspicion enabled to ", enabled)
+	h.Config.FailureDetect.Suspicion.Enabled = enabled
+}
+
+func (h *Heartbeat) SetDropRate(dropRate float32) {
+	logrus.Info("Set drop rate to ", dropRate)
+	h.Config.Heartbeat.DropRate = dropRate
 }

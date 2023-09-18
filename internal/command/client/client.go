@@ -7,11 +7,12 @@ import (
 	"sync"
 	"time"
 
+	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/config"
 	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/socket"
 )
 
 type Client struct {
-	machines []Machine
+	machines []config.Machine
 }
 
 type Result struct {
@@ -22,7 +23,7 @@ type Result struct {
 
 // New creates a new client
 func New(configPath string, machineRegex string) (*Client, error) {
-	conf, err := NewConfig(configPath)
+	conf, err := config.NewConfig(configPath)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +42,7 @@ func (c *Client) Run(args []string) map[string]Result {
 	result := make(chan Result)
 	for _, machine := range c.machines {
 		wg.Add(1)
-		go func(machine Machine) {
+		go func(machine config.Machine) {
 			defer wg.Done()
 			response, err := sendCommand(machine.Hostname, machine.Port, strings.Join(args, " "))
 			if err != nil {

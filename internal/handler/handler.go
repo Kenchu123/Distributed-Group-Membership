@@ -16,9 +16,11 @@ type RootHandler struct {
 func NewRootHandler() *RootHandler {
 	return &RootHandler{
 		Handlers: map[Command]Handler{
-			JOIN:  &JoinHandler{},
-			LEAVE: &LeaveHandler{},
-			FAIL:  &FailHandler{},
+			JOIN:      &JoinHandler{},
+			LEAVE:     &LeaveHandler{},
+			FAIL:      &FailHandler{},
+			SUSPICION: &SuspicionHandler{},
+			DROPRATE:  &DropRateHandler{},
 		},
 	}
 }

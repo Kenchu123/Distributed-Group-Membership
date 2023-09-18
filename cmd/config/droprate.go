@@ -1,25 +1,28 @@
-package member
+package config
 
 import (
+	"fmt"
+
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/command/client"
 	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/handler"
 )
 
-var joinCmd = &cobra.Command{
-	Use:   "join",
-	Short: "Join the group",
-	Long:  `Join the group`,
-	Run:   join,
+var dropRate float32
+var dropRateCmd = &cobra.Command{
+	Use:   "droprate",
+	Short: "Manage droprate",
+	Long:  "Manage droprate",
+	Run:   droprate,
 }
 
-func join(cmd *cobra.Command, args []string) {
+func droprate(cmd *cobra.Command, args []string) {
 	client, err := client.New(configPath, machineRegex)
 	if err != nil {
 		logrus.Fatalf("failed to create command client: %v", err)
 	}
-	results := client.Run([]string{string(handler.JOIN)})
+	results := client.Run([]string{string(handler.DROPRATE), fmt.Sprintf("%f", dropRate)})
 	for _, r := range results {
 		if r.Err != nil {
 			logrus.Errorf("failed to send command to %s: %v\n", r.Hostname, r.Err)
@@ -27,4 +30,8 @@ func join(cmd *cobra.Command, args []string) {
 		}
 		logrus.Printf("%s: %s\n", r.Hostname, r.Message)
 	}
+}
+
+func init() {
+	dropRateCmd.Flags().Float32VarP(&dropRate, "droprate", "d", 0.0, "droprate")
 }

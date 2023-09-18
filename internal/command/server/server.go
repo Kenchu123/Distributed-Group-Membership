@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
+	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/config"
 	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/handler"
 	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/socket"
 )
@@ -19,7 +20,11 @@ type Server struct {
 }
 
 // New creates a new server
-func New(port string) (*Server, error) {
+func New(configPath, port string) (*Server, error) {
+	_, err := config.NewConfig(configPath)
+	if err != nil {
+		return nil, err
+	}
 	hostName, err := os.Hostname()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get hostname: %w", err)
