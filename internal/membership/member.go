@@ -33,38 +33,52 @@ func NewMemberSelf() (*Member, error) {
 }
 
 func (m *Member) UpdateState(heartbeat int, state State) {
+	m.logChange(state, heartbeat, m.Incarnation)
 	m.Heartbeat = heartbeat
 	m.State = state
 	m.LastUpdateTime = time.Now().UnixMilli()
-	logrus.Infof("[STATE CHANGE] %s change state to %s", m.ID, m.State)
 }
 
 func (m *Member) UpdateHeartbeatAndIncarnation(heartbeat, incarnation int) {
+	m.logChange(m.State, heartbeat, incarnation)
 	m.Heartbeat = heartbeat
 	m.Incarnation = incarnation
 	m.LastUpdateTime = time.Now().UnixMilli()
-	logrus.Infof("[HEARTBEAT, INCARNATION] %s change heartbeat to %d, incarnation to %d", m.ID, m.Heartbeat, m.Incarnation)
 }
 
 func (m *Member) UpdateStateAndIncarnation(state State, incarnation int) {
+	m.logChange(state, m.Heartbeat, incarnation)
 	m.State = state
 	m.Incarnation = incarnation
 	m.LastUpdateTime = time.Now().UnixMilli()
-	logrus.Infof("[STATE, INCARNATION] %s change state to %s, incarnation to %d", m.ID, m.State, m.Incarnation)
 }
 
 func (m *Member) UpdateStateHeartbeatAndIncarnation(state State, heartbeat, incarnation int) {
+	m.logChange(state, heartbeat, incarnation)
 	m.State = state
 	m.Heartbeat = heartbeat
 	m.Incarnation = incarnation
 	m.LastUpdateTime = time.Now().UnixMilli()
-	logrus.Infof("[STATE, HEARTBEAT, INCARNATION] %s change state to %s, heartbeat to %d, incarnation to %d", m.ID, m.State, m.Heartbeat, m.Incarnation)
 }
 
 func (m *Member) IncreaseHeartbeat() {
+	m.logChange(m.State, m.Heartbeat+1, m.Incarnation)
 	m.Heartbeat++
 	m.LastUpdateTime = time.Now().UnixMilli()
-	logrus.Infof("[HEARTBEAT] %s increase heartbeat to %d", m.ID, m.Heartbeat)
+}
+
+func (m *Member) logChange(state State, heartbeat, incarnation int) {
+	logrus.WithFields(logrus.Fields{
+		"ID": m.ID,
+	}).Infof(
+		"\n\tState: %s -> %s\n\tHeartbeat: %d -> %d\n\tIncarnation: %d -> %d",
+		m.State,
+		state,
+		m.Heartbeat,
+		heartbeat,
+		m.Incarnation,
+		incarnation,
+	)
 }
 
 func (m *Member) GetSnapshot() *Member {

@@ -117,7 +117,11 @@ func (h *Heartbeat) sendHeartbeat() {
 				logrus.Errorf("failed to serialize membership: %v", err)
 				return
 			}
-			client.Send(payload)
+			_, err = client.Send(payload, h.Config.Heartbeat.DropRate)
+			if err != nil {
+				logrus.Errorf("Failed to send heartbeat to %s: %s with error: %v", hostname, h.Membership, err)
+				return
+			}
 			logrus.Debugf("Sending heartbeat to %s: %s", hostname, h.Membership)
 		}(hostname)
 	}
@@ -201,11 +205,11 @@ func (h *Heartbeat) stopCleaningUp() {
 }
 
 func (h *Heartbeat) SetSuspicion(enabled bool) {
-	logrus.Info("Set suspicion enabled to ", enabled)
+	logrus.Info("[SUSPICION] Set suspicion enabled to ", enabled)
 	h.Config.FailureDetect.Suspicion.Enabled = enabled
 }
 
 func (h *Heartbeat) SetDropRate(dropRate float32) {
-	logrus.Info("Set drop rate to ", dropRate)
+	logrus.Info("[DROPRATE] Set drop rate to ", dropRate)
 	h.Config.Heartbeat.DropRate = dropRate
 }

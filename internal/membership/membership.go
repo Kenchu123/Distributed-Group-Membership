@@ -71,6 +71,10 @@ func (m *Membership) updateMember(member *Member) {
 	// case 2: member is in the membership list
 	// case 2.1: member is marked as failed, don't update the state
 	if m.Members[member.ID].State == FAILED {
+		// exit if someone marked me as failed
+		if m.ID == member.ID {
+			logrus.Fatalf("I am marked as failed")
+		}
 		return
 	}
 	// case 2.2: member is marked as left, don't update the state
