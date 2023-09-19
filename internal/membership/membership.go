@@ -127,6 +127,10 @@ func (m *Membership) updateMember(member *Member) {
 		if member.State == ALIVE && m.Members[member.ID].Incarnation < member.Incarnation {
 			m.Members[member.ID].UpdateStateHeartbeatAndIncarnation(member.State, member.Heartbeat, member.Incarnation)
 		}
+		// case 2.4.3: new member is marked as suspected with higher incarnation number, update the incarnation number
+		if member.State == SUSPECTED && m.Members[member.ID].Incarnation < member.Incarnation {
+			m.Members[member.ID].UpdateStateAndIncarnation(member.State, member.Incarnation)
+		}
 		return
 	}
 }
