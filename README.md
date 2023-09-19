@@ -32,7 +32,9 @@ Flags:
   -p, --port string     port to listen on (default "7132")
 ```
 
-### Join
+### member
+
+#### Join
 
 `member join` command tells the machine to join the group.
 
@@ -47,7 +49,7 @@ Global Flags:
   -m, --machine-regex string   regex for machines to join (e.g. "0[1-9]") (default ".*")
 ```
 
-### Leave
+#### Leave
 
 `member leave` command tells the machine to leave the group.
 
@@ -62,7 +64,39 @@ Global Flags:
   -m, --machine-regex string   regex for machines to join (e.g. "0[1-9]") (default ".*")
 ```
 
-### Suspicion
+#### Fail
+
+`member fail` command tells the machine's process to fail.
+
+```bash
+./bin/msl member fail [flags]
+
+Flags:
+  -h, --help   help for fail
+
+Global Flags:
+  -c, --config string          path to config file (default ".msl/config.yml")
+  -m, --machine-regex string   regex for machines to join (e.g. "0[1-9]") (default ".*")
+```
+
+#### List
+
+`member list` command lists all members in the group.
+
+```bash
+./bin/msl member list [flags]
+
+Flags:
+  -h, --help   help for list
+
+Global Flags:
+  -c, --config string          path to config file (default ".msl/config.yml")
+  -m, --machine-regex string   regex for machines to join (e.g. "0[1-9]") (default ".*")
+```
+
+### Config
+
+#### Set Suspicion
 
 `config set-suspicion` command enables or disables suspicion.
 
@@ -78,7 +112,7 @@ Global Flags:
   -m, --machine-regex string   regex for machines to join (e.g. "0[1-9]") (default ".*")
 ```
 
-### DropRate
+#### Set DropRate
 
 `config set-droprate` command sets the drop rate.
 
@@ -94,7 +128,7 @@ Global Flags:
   -m, --machine-regex string   regex for machines to join (e.g. "0[1-9]") (default ".*")
 ```
 
-### Verbose
+#### Set Verbose
 
 `config set-verbose` command sets the verbose level.
 

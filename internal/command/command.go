@@ -9,6 +9,7 @@ const (
 	JOIN  Command = "JOIN"
 	LEAVE Command = "LEAVE"
 	FAIL  Command = "FAIL"
+	LIST  Command = "LIST"
 	// config
 	SUSPICION Command = "SUSPICION"
 	DROPRATE  Command = "DROPRATE"
