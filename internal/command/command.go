@@ -5,9 +5,12 @@ type Command string
 
 // Constants for the different states of a member
 const (
-	JOIN      Command = "JOIN"
-	LEAVE     Command = "LEAVE"
-	FAIL      Command = "FAIL"
+	// member
+	JOIN  Command = "JOIN"
+	LEAVE Command = "LEAVE"
+	FAIL  Command = "FAIL"
+	// config
 	SUSPICION Command = "SUSPICION"
 	DROPRATE  Command = "DROPRATE"
+	VERBOSE   Command = "VERBOSE"
 )

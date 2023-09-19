@@ -25,6 +25,7 @@ func NewRootHandler() *RootHandler {
 			command.FAIL:      &FailHandler{},
 			command.SUSPICION: &SuspicionHandler{},
 			command.DROPRATE:  &DropRateHandler{},
+			command.VERBOSE:   &VerboseHandler{},
 		},
 	}
 }

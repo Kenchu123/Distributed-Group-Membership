@@ -94,6 +94,22 @@ Global Flags:
   -m, --machine-regex string   regex for machines to join (e.g. "0[1-9]") (default ".*")
 ```
 
+### Verbose
+
+`config set-verbose` command sets the verbose level.
+
+```bash
+./bin/msl config set-verbose [flags]
+
+Flags:
+  -h, --help      help for set-verbose
+  -v, --verbose   enable or disable verbose
+
+Global Flags:
+  -c, --config string          path to config file (default ".msl/config.yml")
+  -m, --machine-regex string   regex for machines to join (e.g. "0[1-9]") (default ".*")
+```
+
 ## Development
 
 ### Prerequisites

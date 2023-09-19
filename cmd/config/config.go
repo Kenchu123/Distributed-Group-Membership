@@ -17,5 +17,5 @@ func New() *cobra.Command {
 func init() {
 	configCmd.PersistentFlags().StringVarP(&configPath, "config", "c", ".msl/config.yml", "path to config file")
 	configCmd.PersistentFlags().StringVarP(&machineRegex, "machine-regex", "m", ".*", "regex for machines to join (e.g. \"0[1-9]\")")
-	configCmd.AddCommand(suspicionCmd, dropRateCmd)
+	configCmd.AddCommand(suspicionCmd, dropRateCmd, verboseCmd)
 }
