@@ -32,12 +32,14 @@ func (u *UdpServer) Serve(handle func(net.Addr, []byte)) {
 	defer u.conn.Close()
 	for {
 		buffer := make([]byte, 1024)
-		_, addr, err := u.conn.ReadFrom(buffer)
+		readLen, addr, err := u.conn.ReadFrom(buffer)
 		if err != nil {
 			logrus.Errorf("failed to read from udp server: %v", err)
 			break
 		}
-		go handle(addr, buffer)
+		logrus.Debugf("Received message from %s with len = %d", addr.String(), readLen)
+
+		go handle(addr, buffer[:readLen])
 	}
 }
 

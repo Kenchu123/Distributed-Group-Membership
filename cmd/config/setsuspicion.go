@@ -11,13 +11,13 @@ import (
 
 var enable bool
 var suspicionCmd = &cobra.Command{
-	Use:   "suspicion",
+	Use:   "set-suspicion",
 	Short: "Set suspicion",
 	Long:  `Set suspicion`,
-	Run:   suspicion,
+	Run:   setSuspicion,
 }
 
-func suspicion(cmd *cobra.Command, args []string) {
+func setSuspicion(cmd *cobra.Command, args []string) {
 	client, err := client.New(configPath, machineRegex)
 	if err != nil {
 		logrus.Fatalf("failed to create command client: %v", err)

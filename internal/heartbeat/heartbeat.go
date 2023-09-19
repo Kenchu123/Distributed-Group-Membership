@@ -2,6 +2,7 @@ package heartbeat
 
 import (
 	"fmt"
+	"math/rand"
 	"net"
 	"sync"
 	"time"
@@ -103,7 +104,7 @@ func (h *Heartbeat) startHeartbeating() {
 func (h *Heartbeat) sendHeartbeat() {
 	// update self heartbeat
 	h.Membership.IncreaseSelfHeartbeat()
-	hostnames := h.Membership.GetHeartbeatTargetMembers()
+	hostnames := h.Membership.GetHeartbeatTargetMembers(h.Config.Machines)
 	logrus.Debug("Heartbeat target members: ", hostnames)
 	for _, hostname := range hostnames {
 		go func(hostname string) {
@@ -117,9 +118,9 @@ func (h *Heartbeat) sendHeartbeat() {
 				logrus.Errorf("failed to serialize membership: %v", err)
 				return
 			}
-			_, err = client.Send(payload, h.Config.Heartbeat.DropRate)
+			_, err = client.Send(payload)
 			if err != nil {
-				logrus.Errorf("Failed to send heartbeat to %s: %s with error: %v", hostname, h.Membership, err)
+				logrus.Errorf("Failed to send heartbeat to %s, error: %v", hostname, err)
 				return
 			}
 			logrus.Debugf("Sending heartbeat to %s: %s", hostname, h.Membership)
@@ -133,9 +134,16 @@ func (h *Heartbeat) startReceiving() {
 }
 
 func (h *Heartbeat) receiveHeartbeat(addr net.Addr, buffer []byte) {
+	if h.Config.Heartbeat.DropRate > 0 {
+		rand := rand.Float32()
+		if rand < h.Config.Heartbeat.DropRate {
+			logrus.Infof("Dropping heartbeat from %s", addr.String())
+			return
+		}
+	}
 	membership, err := membership.Deserialize(buffer)
 	if err != nil {
-		logrus.Errorf("failed to deserialize membership: %v", err)
+		logrus.Errorf("failed to deserialize membership from %s: %v", addr.String(), err)
 		return
 	}
 	logrus.Debugf("Received heartbeat from %s: %s", addr.String(), membership)

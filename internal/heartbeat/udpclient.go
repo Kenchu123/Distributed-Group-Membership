@@ -2,7 +2,6 @@ package heartbeat
 
 import (
 	"fmt"
-	"math/rand"
 	"net"
 )
 
@@ -26,12 +25,6 @@ func NewUdpClient(hostname string, port string) (*UdpClient, error) {
 }
 
 // Send sends a heartbeat to the UDP server
-func (u *UdpClient) Send(msg []byte, dropRate float32) (int, error) {
-	if dropRate > 0 {
-		rand := rand.Float32()
-		if rand < dropRate {
-			return 0, fmt.Errorf("Package dropped")
-		}
-	}
+func (u *UdpClient) Send(msg []byte) (int, error) {
 	return u.conn.Write(msg)
 }

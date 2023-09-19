@@ -1,8 +1,7 @@
 package membership
 
 import (
-	"bytes"
-	"encoding/gob"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
@@ -63,22 +62,30 @@ func (m *Membership) Update(ms *Membership) {
 func (m *Membership) updateMember(member *Member) {
 	// case 1: member is not in the membership list
 	if _, ok := m.Members[member.ID]; !ok {
+		// case 1.1: new member is marked as failed or left, don't update the state
+		if member.State == FAILED || member.State == LEFT {
+			return
+		}
+		member.LastUpdateTime = time.Now().UnixMilli()
 		m.Members[member.ID] = member
 		// TODO: prettier log
-		logrus.Infof("JOINED: %v", member)
+		logrus.Infof("[JOINED] %s with state %s", member.ID, member.State)
 		return
 	}
 	// case 2: member is in the membership list
 	// case 2.1: member is marked as failed, don't update the state
 	if m.Members[member.ID].State == FAILED {
-		// exit if someone marked me as failed
-		if m.ID == member.ID {
-			logrus.Fatalf("I am marked as failed")
-		}
 		return
 	}
 	// case 2.2: member is marked as left, don't update the state
 	if m.Members[member.ID].State == LEFT {
+		if member.State == FAILED {
+			m.Members[member.ID].UpdateState(member.Heartbeat, member.State)
+			// case self failed
+			if member.State == FAILED && m.ID == member.ID {
+				logrus.Fatalf("[FAILED] I am marked as failed")
+			}
+		}
 		return
 	}
 	// case 2.3: member is marked as alive
@@ -86,6 +93,10 @@ func (m *Membership) updateMember(member *Member) {
 		// case 2.3.1: new member is marked as failed or left, update the state
 		if member.State == FAILED || member.State == LEFT {
 			m.Members[member.ID].UpdateState(member.Heartbeat, member.State)
+			// case self failed
+			if member.State == FAILED && m.ID == member.ID {
+				logrus.Fatalf("[FAILED] I am marked as failed")
+			}
 		}
 		// case 2.3.2: new member is marked as alive with higher heartbeat number and with equal or higher incarnation number, update the heartbeat
 		if member.State == ALIVE && m.Members[member.ID].Heartbeat < member.Heartbeat && m.Members[member.ID].Incarnation <= member.Incarnation {
@@ -107,6 +118,10 @@ func (m *Membership) updateMember(member *Member) {
 		// case 2.4.1: new member is marked as failed or left, update the state
 		if member.State == FAILED || member.State == LEFT {
 			m.Members[member.ID].UpdateState(member.Heartbeat, member.State)
+			// case self failed
+			if member.State == FAILED && m.ID == member.ID {
+				logrus.Fatalf("[FAILED] I am marked as failed")
+			}
 		}
 		// case 2.4.2: new member is marked as alive with higher incarnation number, update the state, heartbeat, and incarnation number
 		if member.State == ALIVE && m.Members[member.ID].Incarnation < member.Incarnation {
@@ -147,34 +162,9 @@ func (m *Membership) CleanUp(cleanupTimeout time.Duration) {
 	for id, member := range m.Members {
 		if (member.State == FAILED || member.State == LEFT) && time.Now().UnixMilli() > member.LastUpdateTime+cleanupTimeout.Milliseconds() {
 			delete(m.Members, id)
+			logrus.Infof("[REMOVE] %s with state %s", id, member.State)
 		}
 	}
-}
-
-// Serialize serializes the membership list
-func Serialize(m *Membership) ([]byte, error) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	buf := bytes.Buffer{}
-	enc := gob.NewEncoder(&buf)
-	err := enc.Encode(m)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
-}
-
-// Deserialize deserializes the membership list
-func Deserialize(b []byte) (*Membership, error) {
-	m := NewEmpty()
-	buf := bytes.Buffer{}
-	buf.Write(b)
-	dec := gob.NewDecoder(&buf)
-	err := dec.Decode(m)
-	if err != nil {
-		return nil, err
-	}
-	return m, nil
 }
 
 // String
@@ -188,28 +178,91 @@ func (m *Membership) GetName() string {
 }
 
 // Get heartbeat target members' hostnames
-func (m *Membership) GetHeartbeatTargetMembers() []string {
+func (m *Membership) GetHeartbeatTargetMembers(machines []config.Machine) []string {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	// TODO: introducers and algorithms for selecting heartbeat target members
-	hostnames := []string{"fa23-cs425-8701.cs.illinois.edu", "fa23-cs425-8702.cs.illinois.edu"}
+	// case1: introducers, there are no alive members (on startup)
+	// case2: there are alive members
+	// aliveMembers := map[string]bool{}
+	// for _, member := range m.Members {
+	// 	if member.State == ALIVE {
+	// 		aliveMembers[member.GetName()] = true
+	// 	}
+	// }
+	// hostnames := []string{}
+	// for _, machine := range machines {
+	// 	if _, ok := aliveMembers[machine.Hostname]; ok && machine.Hostname != m.GetName() {
+	// 		hostnames = append(hostnames, machine.Hostname)
+	// 	}
+	// }
+	// if len(hostnames) < 4 {
+	// 	for _, machine := range machines {
+	// 		hostnames = append(hostnames, machine.Hostname)
+	// 	}
+	// } else {
+	// 	// random shuffle and choose the first 3 members
+	// 	rand.Shuffle(len(hostnames), func(i, j int) { hostnames[i], hostnames[j] = hostnames[j], hostnames[i] })
+	// }
+	// fmt.Println(hostnames[:3])
+
+	hostnames := []string{
+		"fa23-cs425-8701.cs.illinois.edu",
+		"fa23-cs425-8702.cs.illinois.edu",
+	}
+
 	for i, hostname := range hostnames {
 		if hostname == m.GetName() {
 			hostnames = append(hostnames[:i], hostnames[i+1:]...)
-			break
 		}
 	}
 	return hostnames
 }
 
-// Get snapshot of membership list
-func (m *Membership) GetSnapshot() *Membership {
+// SerializedMember is a struct that contains the heartbeat, state, and incarnation of a member
+// Used for serialization and deserialization
+type SerializedMember struct {
+	H int
+	S State
+	I int
+}
+type SerializedMembership map[string]SerializedMember
+
+// Serialize serializes the membership list
+func Serialize(m *Membership) ([]byte, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	snapshot := NewEmpty()
-	snapshot.ID = m.ID
-	for _, member := range m.Members {
-		snapshot.Members[member.ID] = member.GetSnapshot()
+	members := SerializedMembership{}
+	for id, member := range m.Members {
+		members[id] = SerializedMember{
+			H: member.Heartbeat,
+			S: member.State,
+			I: member.Incarnation,
+		}
 	}
-	return snapshot
+	buf, err := json.Marshal(members)
+	if err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Deserialize deserializes the membership list
+func Deserialize(b []byte) (*Membership, error) {
+	m := &SerializedMembership{}
+	err := json.Unmarshal(b, m)
+	if err != nil {
+		fmt.Printf("failed to deserialize membership from buf %s to membershiplist: %v\n", string(b), m)
+		return nil, err
+	}
+	members := &Membership{Members: map[string]*Member{}}
+	for id, member := range *m {
+		members.Members[id] = &Member{
+			ID:          id,
+			Heartbeat:   member.H,
+			State:       member.S,
+			Incarnation: member.I,
+		}
+	}
+	return members, nil
 }

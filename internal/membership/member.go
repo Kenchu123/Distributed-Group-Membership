@@ -3,6 +3,7 @@ package membership
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -70,7 +71,7 @@ func (m *Member) IncreaseHeartbeat() {
 func (m *Member) logChange(state State, heartbeat, incarnation int) {
 	logrus.WithFields(logrus.Fields{
 		"ID": m.ID,
-	}).Infof(
+	}).Debugf(
 		"\n\tState: %s -> %s\n\tHeartbeat: %d -> %d\n\tIncarnation: %d -> %d",
 		m.State,
 		state,
@@ -79,16 +80,15 @@ func (m *Member) logChange(state State, heartbeat, incarnation int) {
 		m.Incarnation,
 		incarnation,
 	)
+	if m.State != state || m.Incarnation != incarnation {
+		logrus.WithFields(logrus.Fields{
+			"ID": m.ID,
+		}).Infof("[STATE CHANGE] (%s, %d) to (%s, %d)", m.State, m.Incarnation, state, incarnation)
+	}
 }
 
-func (m *Member) GetSnapshot() *Member {
-	return &Member{
-		ID:             m.ID,
-		Heartbeat:      m.Heartbeat,
-		LastUpdateTime: m.LastUpdateTime,
-		State:          m.State,
-		Incarnation:    m.Incarnation,
-	}
+func (m *Member) GetName() string {
+	return strings.Split(m.ID, "_")[0]
 }
 
 func (m *Member) String() string {

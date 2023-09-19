@@ -10,7 +10,6 @@ services:
     volumes:
       - .:/app
       - /app/bin
-      - /app/logs
   m1:
     container_name: dev-m1
     build:
@@ -22,6 +21,7 @@ services:
       - .:/app
       - /app/bin
       - /app/logs
+      - ./logs/m1:/app/logs
   m2:
     container_name: dev-m2
     build:
@@ -33,3 +33,100 @@ services:
       - .:/app
       - /app/bin
       - /app/logs
+      - ./logs/m2:/app/logs
+  m3:
+    container_name: dev-m3
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: msl-dev
+    hostname: fa23-cs425-8703.cs.illinois.edu
+    volumes:
+      - .:/app
+      - /app/bin
+      - /app/logs
+      - ./logs/m3:/app/logs
+  m4:
+    container_name: dev-m4
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: msl-dev
+    hostname: fa23-cs425-8704.cs.illinois.edu
+    volumes:
+      - .:/app
+      - /app/bin
+      - /app/logs
+      - ./logs/m4:/app/logs
+  m5:
+    container_name: dev-m5
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: msl-dev
+    hostname: fa23-cs425-8705.cs.illinois.edu
+    volumes:
+      - .:/app
+      - /app/bin
+      - /app/logs
+      - ./logs/m5:/app/logs
+  m6:
+    container_name: dev-m6
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: msl-dev
+    hostname: fa23-cs425-8706.cs.illinois.edu
+    volumes:
+      - .:/app
+      - /app/bin
+      - /app/logs
+      - ./logs/m6:/app/logs
+  m7:
+    container_name: dev-m7
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: msl-dev
+    hostname: fa23-cs425-8707.cs.illinois.edu
+    volumes:
+      - .:/app
+      - /app/bin
+      - /app/logs
+      - ./logs/m7:/app/logs
+  m8:
+    container_name: dev-m8
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: msl-dev
+    hostname: fa23-cs425-8708.cs.illinois.edu
+    volumes:
+      - .:/app
+      - /app/bin
+      - /app/logs
+      - ./logs/m8:/app/logs
+  m9:
+    container_name: dev-m9
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: msl-dev
+    hostname: fa23-cs425-8709.cs.illinois.edu
+    volumes:
+      - .:/app
+      - /app/bin
+      - /app/logs
+      - ./logs/m9:/app/logs
+  m10:
+    container_name: dev-m10
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: msl-dev
+    hostname: fa23-cs425-8710.cs.illinois.edu
+    volumes:
+      - .:/app
+      - /app/bin
+      - /app/logs
+      - ./logs/m10:/app/logs

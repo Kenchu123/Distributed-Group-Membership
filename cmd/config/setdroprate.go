@@ -11,13 +11,13 @@ import (
 
 var dropRate float32
 var dropRateCmd = &cobra.Command{
-	Use:   "droprate",
+	Use:   "set-droprate",
 	Short: "Manage droprate",
 	Long:  "Manage droprate",
-	Run:   droprate,
+	Run:   setDroprate,
 }
 
-func droprate(cmd *cobra.Command, args []string) {
+func setDroprate(cmd *cobra.Command, args []string) {
 	client, err := client.New(configPath, machineRegex)
 	if err != nil {
 		logrus.Fatalf("failed to create command client: %v", err)
