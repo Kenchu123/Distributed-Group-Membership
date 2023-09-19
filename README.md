@@ -67,7 +67,7 @@ Global Flags:
 `config set-suspicion` command enables or disables suspicion.
 
 ```bash
-./bin/msl config suspicion [flags]
+./bin/msl config set-suspicion [flags]
 
 Flags:
   -e, --enable   enable or disable suspicion
@@ -83,7 +83,7 @@ Global Flags:
 `config set-droprate` command sets the drop rate.
 
 ```bash
-./bin/msl config droprate [flags]
+./bin/msl config set-droprate [flags]
 
 Flags:
   -d, --droprate float32   droprate
@@ -110,6 +110,8 @@ docker compose -f docker-compose.dev.yml up [-d] [--build]
 # on another session
 docker exec -it dev /bin/ash
 docker exec -it dev-m[1-10] /bin/ash
+
+$ go run main.go [command] [flags]
 ```
 
 ## Contributor
