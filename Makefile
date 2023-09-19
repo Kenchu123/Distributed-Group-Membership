@@ -2,10 +2,11 @@ all: build
 
 build:
 	mkdir -p bin
-	go build -o bin/membership-server cmd/main.go
+	go build -o bin/msl main.go
 
 run:
-	go run cmd/main.go $(ARGS)
+	go run main.go $(ARGS)
 
 clean:
 	rm -rf bin
+	rm -rf logs/*

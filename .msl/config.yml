@@ -1,0 +1,45 @@
+machines:
+  - hostname: "fa23-cs425-8701.cs.illinois.edu"
+    port: "7132"
+    id: "1"
+  - hostname: "fa23-cs425-8702.cs.illinois.edu"
+    port: "7132"
+    id: "2"
+  - hostname: "fa23-cs425-8703.cs.illinois.edu"
+    port: "7132"
+    id: "3"
+  - hostname: "fa23-cs425-8704.cs.illinois.edu"
+    port: "7132"
+    id: "4"
+  - hostname: "fa23-cs425-8705.cs.illinois.edu"
+    port: "7132"
+    id: "5"
+  - hostname: "fa23-cs425-8706.cs.illinois.edu"
+    port: "7132"
+    id: "6"
+  - hostname: "fa23-cs425-8707.cs.illinois.edu"
+    port: "7132"
+    id: "7"
+  - hostname: "fa23-cs425-8708.cs.illinois.edu"
+    port: "7132"
+    id: "8"
+  - hostname: "fa23-cs425-8709.cs.illinois.edu"
+    port: "7132"
+    id: "9"
+  - hostname: "fa23-cs425-8710.cs.illinois.edu"
+    port: "7132"
+    id: "10"
+heartbeat:
+  port: "7140"
+  interval: 1000ms # send heartbeat every <interval> millisecond
+  drop_rate: 0.0
+failure_detect:
+  interval: 1000ms # check failure every <interval> millisecond
+  failure_timeout: 3000ms  # set to failure if no heartbeat received for <timeout> millisecond
+  suspicion:
+    enable: false # enable suspicion
+    suspect_timeout: 2000ms # set to suspect if no heartbeat received for <timeout> millisecond
+    failure_timeout: 3000ms  # set to failure if suspected and no heartbeat received for <timeout> millisecond
+cleanup:
+  interval: 1000ms # clean up left / failure every <interval> millisecond
+  timeout: 3000ms  # remove from membership if left or failed for <timeout> millisecond
