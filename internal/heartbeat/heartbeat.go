@@ -36,6 +36,7 @@ type Heartbeat struct {
 var lock = &sync.Mutex{}
 var instance *Heartbeat
 
+// GetInstance returns the singleton instance of heartbeat
 func GetInstance() (*Heartbeat, error) {
 	lock.Lock()
 	defer lock.Unlock()
@@ -102,7 +103,6 @@ func (h *Heartbeat) startHeartbeating() {
 }
 
 func (h *Heartbeat) sendHeartbeat() {
-	// update self heartbeat
 	h.Membership.IncreaseSelfHeartbeat()
 	hostnames := h.Membership.GetHeartbeatTargetMembers(h.Config.Machines)
 	logrus.Debug("Heartbeat target members: ", hostnames)
@@ -212,11 +212,13 @@ func (h *Heartbeat) stopCleaningUp() {
 	h.cleanupTickerDone <- true
 }
 
+// SetSuspicion sets suspicion enabled
 func (h *Heartbeat) SetSuspicion(enabled bool) {
 	logrus.Info("[SUSPICION] Set suspicion enabled to ", enabled)
 	h.Config.FailureDetect.Suspicion.Enabled = enabled
 }
 
+// SetDropRate sets drop rate
 func (h *Heartbeat) SetDropRate(dropRate float32) {
 	logrus.Info("[DROPRATE] Set drop rate to ", dropRate)
 	h.Config.Heartbeat.DropRate = dropRate

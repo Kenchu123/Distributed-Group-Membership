@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
+	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/command/handler"
+	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/command/socket"
 	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/config"
-	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/handler"
-	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/socket"
 )
 
 var chunkSize = 4096

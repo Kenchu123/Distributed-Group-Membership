@@ -172,7 +172,7 @@ func (m *Membership) String() string {
 	return fmt.Sprintf("SelfID: %s\nMembership: %s\n", m.ID, m.Members)
 }
 
-// Get name of member
+// Get name of membership's owner
 func (m *Membership) GetName() string {
 	return strings.Split(m.ID, "_")[0]
 }
