@@ -27,6 +27,7 @@ func NewRootHandler() *RootHandler {
 			command.DROPRATE:  &DropRateHandler{},
 			command.VERBOSE:   &VerboseHandler{},
 			command.LIST:      &ListHandler{},
+			command.ID:        &IDHandler{},
 		},
 	}
 }

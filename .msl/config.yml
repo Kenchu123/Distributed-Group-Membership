@@ -31,7 +31,7 @@ machines:
     id: "10"
 heartbeat:
   port: "7140"
-  interval: 1000ms # send heartbeat every <interval> millisecond
+  interval: 700ms # send heartbeat every <interval> millisecond
   drop_rate: 0.0
 failure_detect:
   interval: 1000ms # check failure every <interval> millisecond

@@ -3,6 +3,7 @@ package membership
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"strings"
 	"sync"
 	"time"
@@ -16,6 +17,8 @@ type Membership struct {
 	ID      string             // ID of the node
 	Members map[string]*Member // map of members
 	mu      sync.Mutex         // mutex
+	robin   map[int]string     // round robin list
+	index   int                // round robin index
 }
 
 // New creates a new membership
@@ -26,7 +29,7 @@ func New() (*Membership, error) {
 	}
 	return &Membership{ID: member.ID, Members: map[string]*Member{
 		member.ID: member,
-	}}, nil
+	}, robin: nil, index: 0}, nil
 }
 
 // NewEmpty creates a new empty membership
@@ -181,46 +184,84 @@ func (m *Membership) GetName() string {
 	return strings.Split(m.ID, "_")[0]
 }
 
+// Check whether the hostname is already in the hostnames list
+func checkHostname(hostnames []string, hostname string) bool {
+	for _, h := range hostnames {
+		if h == hostname {
+			return true
+		}
+	}
+	return false
+}
+
 // Get heartbeat target members' hostnames
 func (m *Membership) GetHeartbeatTargetMembers(machines []config.Machine) []string {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	hostnames := []string{}
 	// TODO: introducers and algorithms for selecting heartbeat target members
-	// case1: introducers, there are no alive members (on startup)
-	// case2: there are alive members
-	// aliveMembers := map[string]bool{}
-	// for _, member := range m.Members {
-	// 	if member.State == ALIVE {
-	// 		aliveMembers[member.GetName()] = true
-	// 	}
-	// }
-	// hostnames := []string{}
-	// for _, machine := range machines {
-	// 	if _, ok := aliveMembers[machine.Hostname]; ok && machine.Hostname != m.GetName() {
-	// 		hostnames = append(hostnames, machine.Hostname)
-	// 	}
-	// }
-	// if len(hostnames) < 4 {
-	// 	for _, machine := range machines {
-	// 		hostnames = append(hostnames, machine.Hostname)
-	// 	}
-	// } else {
-	// 	// random shuffle and choose the first 3 members
-	// 	rand.Shuffle(len(hostnames), func(i, j int) { hostnames[i], hostnames[j] = hostnames[j], hostnames[i] })
-	// }
-	// fmt.Println(hostnames[:3])
-
-	hostnames := []string{
-		"fa23-cs425-8701.cs.illinois.edu",
-		"fa23-cs425-8702.cs.illinois.edu",
+	// if there is no round robin list, create one to save the machines name
+	if m.robin == nil || len(m.robin) == 0 {
+		m.robin = map[int]string{}
+		i := 0
+		for _, machine := range machines {
+			m.robin[i] = machine.Hostname
+			i++
+		}
+		rand.Shuffle(len(m.robin), func(i, j int) { m.robin[i], m.robin[j] = m.robin[j], m.robin[i] })
 	}
-
-	for i, hostname := range hostnames {
-		if hostname == m.GetName() {
-			hostnames = append(hostnames[:i], hostnames[i+1:]...)
+	// select the first 4 members
+	for i := 0; i < len(m.robin); i++ {
+		if m.robin[m.index] != m.GetName() {
+			hostnames = append(hostnames, m.robin[m.index])
+		}
+		m.index++
+		if m.index >= len(m.robin) {
+			m.index = 0
+			rand.Shuffle(len(m.robin), func(i, j int) { m.robin[i], m.robin[j] = m.robin[j], m.robin[i] })
+		}
+		if len(hostnames) == 4 {
+			break
 		}
 	}
 	return hostnames
+	// get the alive member list
+	// aliveMembers := map[string]bool{}
+	// for _, member := range m.Members {
+	// 	if member.State == ALIVE && member.ID != m.ID {
+	// 		aliveMembers[member.GetName()] = true
+	// 	}
+	// }
+	// alive := len(aliveMembers)
+	// if there are less than or equal to 3 alive members, return all alive members
+	// if alive <= 3 {
+	// 	for i := 0; i < len(m.robin); i++ {
+	// 		if _, ok := m.Members[m.robin[i]]; ok && m.robin[i] != m.GetName() {
+	// 			if m.Members[m.robin[i]].State == ALIVE {
+	// 				hostnames = append(hostnames, m.robin[i])
+	// 			}
+	// 		}
+	// 	}
+	// 	return hostnames
+	// }
+	// get the first 3 alive members in the round robin list, if index is out of bound, reset index to 0 and shuffle the list and repick until there are 3 alive members
+	// for {
+	// 	// check if the hostname already exists in the list
+	// 	if m.Members[m.robin[m.index]].State == ALIVE && m.robin[m.index] != m.GetName() {
+	// 		if !checkHostname(hostnames, m.robin[m.index]) {
+	// 			hostnames = append(hostnames, m.robin[m.index])
+	// 		}
+	// 	}
+	// 	m.index++
+	// 	if m.index >= len(m.robin) {
+	// 		m.index = 0
+	// 		rand.Shuffle(len(m.robin), func(i, j int) { m.robin[i], m.robin[j] = m.robin[j], m.robin[i] })
+	// 	}
+	// 	if len(hostnames) == 3 {
+	// 		break
+	// 	}
+	// }
+	// return hostnames
 }
 
 // SerializedMember is a struct that contains the heartbeat, state, and incarnation of a member
