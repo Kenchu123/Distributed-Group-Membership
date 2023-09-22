@@ -9,4 +9,4 @@ run:
 
 clean:
 	rm -rf bin
-	rm -rf logs/*
+	rm -rf logs/*/*.log

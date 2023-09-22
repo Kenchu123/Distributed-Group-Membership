@@ -10,6 +10,7 @@ const (
 	LEAVE Command = "LEAVE"
 	FAIL  Command = "FAIL"
 	LIST  Command = "LIST"
+	ID    Command = "ID"
 	// config
 	SUSPICION Command = "SUSPICION"
 	DROPRATE  Command = "DROPRATE"

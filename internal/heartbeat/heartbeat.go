@@ -71,7 +71,7 @@ func New() (*Heartbeat, error) {
 // Start starts the heartbeat
 func (h *Heartbeat) Start() {
 	var err error
-	h.Membership, err = membership.New()
+	h.Membership, err = membership.New(h.Config.Heartbeat.Introducer)
 	if err != nil {
 		logrus.Errorf("failed to start: %v", err)
 		return

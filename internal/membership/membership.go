@@ -3,6 +3,7 @@ package membership
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"strings"
 	"sync"
 	"time"
@@ -13,20 +14,33 @@ import (
 
 // MemberList is a struct that contains a map of Members
 type Membership struct {
-	ID      string             // ID of the node
-	Members map[string]*Member // map of members
-	mu      sync.Mutex         // mutex
+	ID           string             // ID of the node
+	Members      map[string]*Member // map of members
+	mu           sync.Mutex         // mutex
+	rrobin       []*Member
+	rrobinIndex  int    // round robin index
+	targetNumber int    // number of targets
+	introducer   string // whether the node is the introducer
 }
 
 // New creates a new membership
-func New() (*Membership, error) {
+func New(introducer string) (*Membership, error) {
 	member, err := NewMemberSelf()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a new membership: %w", err)
 	}
-	return &Membership{ID: member.ID, Members: map[string]*Member{
-		member.ID: member,
-	}}, nil
+	if strings.Contains(member.ID, "fa23-cs425-8701.cs.illinois.edu") {
+		logrus.Infof("I am the introducer")
+	}
+	return &Membership{
+		ID: member.ID, Members: map[string]*Member{
+			member.ID: member,
+		},
+		rrobin:       []*Member{},
+		rrobinIndex:  0,
+		targetNumber: 3,
+		introducer:   introducer,
+	}, nil
 }
 
 // NewEmpty creates a new empty membership
@@ -181,43 +195,62 @@ func (m *Membership) GetName() string {
 	return strings.Split(m.ID, "_")[0]
 }
 
+// Check whether the hostname is already in the hostnames list
+func checkHostname(hostnames []string, hostname string) bool {
+	for _, h := range hostnames {
+		if h == hostname {
+			return true
+		}
+	}
+	return false
+}
+
 // Get heartbeat target members' hostnames
 func (m *Membership) GetHeartbeatTargetMembers(machines []config.Machine) []string {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	// TODO: introducers and algorithms for selecting heartbeat target members
-	// case1: introducers, there are no alive members (on startup)
-	// case2: there are alive members
-	// aliveMembers := map[string]bool{}
-	// for _, member := range m.Members {
-	// 	if member.State == ALIVE {
-	// 		aliveMembers[member.GetName()] = true
-	// 	}
-	// }
-	// hostnames := []string{}
-	// for _, machine := range machines {
-	// 	if _, ok := aliveMembers[machine.Hostname]; ok && machine.Hostname != m.GetName() {
-	// 		hostnames = append(hostnames, machine.Hostname)
-	// 	}
-	// }
-	// if len(hostnames) < 4 {
-	// 	for _, machine := range machines {
-	// 		hostnames = append(hostnames, machine.Hostname)
-	// 	}
-	// } else {
-	// 	// random shuffle and choose the first 3 members
-	// 	rand.Shuffle(len(hostnames), func(i, j int) { hostnames[i], hostnames[j] = hostnames[j], hostnames[i] })
-	// }
-	// fmt.Println(hostnames[:3])
-
-	hostnames := []string{
-		"fa23-cs425-8701.cs.illinois.edu",
-		"fa23-cs425-8702.cs.illinois.edu",
+	// update rrobin list according to membership list
+	rrobinSet := map[string]bool{}
+	for _, member := range m.rrobin {
+		rrobinSet[member.ID] = true
 	}
-
-	for i, hostname := range hostnames {
-		if hostname == m.GetName() {
-			hostnames = append(hostnames[:i], hostnames[i+1:]...)
+	for _, member := range m.Members {
+		// check if member is self
+		if member.ID == m.ID {
+			continue
+		}
+		// check if member is in rrobinSet
+		if _, ok := rrobinSet[member.ID]; ok {
+			continue
+		}
+		// add member to rrobinSet
+		rrobinSet[member.ID] = true
+		// insert member to rrobin list on index m.index
+		m.rrobin = append(m.rrobin[:m.rrobinIndex], append([]*Member{member}, m.rrobin[m.rrobinIndex:]...)...)
+	}
+	// case 1: if rrobin list is empty, return introducer
+	if len(m.rrobin) == 0 {
+		return []string{m.introducer}
+	}
+	// case 2: if rrobin list is not empty, return m.target members
+	hostnames := []string{}
+	for {
+		// if m.index is out of range, reset m.index to 0
+		if m.rrobinIndex >= len(m.rrobin) {
+			m.rrobinIndex = 0
+			rand.Shuffle(len(m.rrobin), func(i, j int) { m.rrobin[i], m.rrobin[j] = m.rrobin[j], m.rrobin[i] })
+		}
+		// if the member is not in membership list, delete it from rrobin list
+		if _, ok := m.Members[m.rrobin[m.rrobinIndex].ID]; !ok {
+			m.rrobin = append(m.rrobin[:m.rrobinIndex], m.rrobin[m.rrobinIndex+1:]...)
+			continue
+		}
+		// append to hostname
+		hostnames = append(hostnames, m.rrobin[m.rrobinIndex].GetName())
+		m.rrobinIndex++
+		// if hostnames is full, break
+		if len(hostnames) == m.targetNumber || len(hostnames) == len(m.rrobin) {
+			break
 		}
 	}
 	return hostnames

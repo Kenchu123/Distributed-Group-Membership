@@ -10,4 +10,5 @@ const (
 	FAIL      Command = "FAIL"
 	SUSPICION Command = "SUSPICION"
 	DROPRATE  Command = "DROPRATE"
+	ID        Command = "ID"
 )
