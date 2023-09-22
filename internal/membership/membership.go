@@ -225,7 +225,6 @@ func (m *Membership) GetHeartbeatTargetMembers(machines []config.Machine) []stri
 		for _, member := range m.Members {
 			if member.ID != m.ID {
 				hostnames = append(hostnames, member.GetName())
-				logrus.Infof("heartbeat target: %s", member.GetName())
 			}
 		}	
 		return hostnames
