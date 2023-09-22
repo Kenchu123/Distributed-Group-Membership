@@ -235,15 +235,24 @@ func (m *Membership) GetHeartbeatTargetMembers(machines []config.Machine) []stri
 	// case 2: if rrobin list is not empty, return m.target members
 	hostnames := []string{}
 	for {
+		// if rrobin list is empty, return introducer
+		if len(m.rrobin) == 0 {
+			return []string{m.introducer}
+		}
 		// if m.index is out of range, reset m.index to 0
 		if m.rrobinIndex >= len(m.rrobin) {
 			m.rrobinIndex = 0
-			rand.Shuffle(len(m.rrobin), func(i, j int) { m.rrobin[i], m.rrobin[j] = m.rrobin[j], m.rrobin[i] })
 		}
 		// if the member is not in membership list, delete it from rrobin list
 		if _, ok := m.Members[m.rrobin[m.rrobinIndex].ID]; !ok {
 			m.rrobin = append(m.rrobin[:m.rrobinIndex], m.rrobin[m.rrobinIndex+1:]...)
 			continue
+		}
+		// if the member start with index 0, shuffle the rrobin list
+		if m.rrobinIndex == 0 {
+			rand.Shuffle(len(m.rrobin), func(i, j int) {
+				m.rrobin[i], m.rrobin[j] = m.rrobin[j], m.rrobin[i]
+			})
 		}
 		// append to hostname
 		hostnames = append(hostnames, m.rrobin[m.rrobinIndex].GetName())

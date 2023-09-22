@@ -137,7 +137,7 @@ func (h *Heartbeat) receiveHeartbeat(addr net.Addr, buffer []byte) {
 	if h.Config.Heartbeat.DropRate > 0 {
 		rand := rand.Float32()
 		if rand < h.Config.Heartbeat.DropRate {
-			logrus.Infof("Dropping heartbeat from %s", addr.String())
+			logrus.Debugf("Dropping heartbeat from %s", addr.String())
 			return
 		}
 	}

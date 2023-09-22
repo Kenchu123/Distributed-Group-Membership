@@ -31,7 +31,7 @@ machines:
     id: "10"
 heartbeat:
   port: "7140"
-  interval: 700ms # send heartbeat every <interval> millisecond
+  interval: 500ms # send heartbeat every <interval> millisecond
   drop_rate: 0.0
   introducer: "fa23-cs425-8701.cs.illinois.edu"
 failure_detect:
@@ -39,8 +39,8 @@ failure_detect:
   failure_timeout: 3000ms # set to failure if no heartbeat received for <timeout> millisecond
   suspicion:
     enable: false # enable suspicion
-    suspect_timeout: 2000ms # set to suspect if no heartbeat received for <timeout> millisecond
-    failure_timeout: 3000ms # set to failure if suspected and no heartbeat received for <timeout> millisecond
+    suspect_timeout: 1500ms # set to suspect if no heartbeat received for <timeout> millisecond
+    failure_timeout: 2000ms # set to failure if suspected and no heartbeat received for <timeout> millisecond
 cleanup:
   interval: 1000ms # clean up left / failure every <interval> millisecond
   timeout: 3000ms # remove from membership if left or failed for <timeout> millisecond
