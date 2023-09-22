@@ -14,17 +14,17 @@ import (
 
 // MemberList is a struct that contains a map of Members
 type Membership struct {
-	ID      string             // ID of the node
-	Members map[string]*Member // map of members
-	mu      sync.Mutex         // mutex
-	rrobin  []*Member
-	index   int  // round robin index
-	target  int  // number of targets
-	intro   bool // whether the node is the introducer
+	ID           string             // ID of the node
+	Members      map[string]*Member // map of members
+	mu           sync.Mutex         // mutex
+	rrobin       []*Member
+	rrobinIndex  int    // round robin index
+	targetNumber int    // number of targets
+	introducer   string // whether the node is the introducer
 }
 
 // New creates a new membership
-func New() (*Membership, error) {
+func New(introducer string) (*Membership, error) {
 	member, err := NewMemberSelf()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a new membership: %w", err)
@@ -32,13 +32,14 @@ func New() (*Membership, error) {
 	if strings.Contains(member.ID, "fa23-cs425-8701.cs.illinois.edu") {
 		logrus.Infof("I am the introducer")
 	}
-	return &Membership{ID: member.ID, Members: map[string]*Member{
-		member.ID: member,
-	},
-		rrobin: []*Member{},
-		index:  0,
-		target: 3,
-		intro:  strings.Contains(member.ID, "fa23-cs425-8701.cs.illinois.edu"),
+	return &Membership{
+		ID: member.ID, Members: map[string]*Member{
+			member.ID: member,
+		},
+		rrobin:       []*Member{},
+		rrobinIndex:  0,
+		targetNumber: 3,
+		introducer:   introducer,
 	}, nil
 }
 
@@ -225,30 +226,30 @@ func (m *Membership) GetHeartbeatTargetMembers(machines []config.Machine) []stri
 		// add member to rrobinSet
 		rrobinSet[member.ID] = true
 		// insert member to rrobin list on index m.index
-		m.rrobin = append(m.rrobin[:m.index], append([]*Member{member}, m.rrobin[m.index:]...)...)
+		m.rrobin = append(m.rrobin[:m.rrobinIndex], append([]*Member{member}, m.rrobin[m.rrobinIndex:]...)...)
 	}
 	// case 1: if rrobin list is empty, return introducer
 	if len(m.rrobin) == 0 {
-		return []string{"fa23-cs425-8701.cs.illinois.edu"}
+		return []string{m.introducer}
 	}
 	// case 2: if rrobin list is not empty, return m.target members
 	hostnames := []string{}
 	for {
 		// if m.index is out of range, reset m.index to 0
-		if m.index >= len(m.rrobin) {
-			m.index = 0
+		if m.rrobinIndex >= len(m.rrobin) {
+			m.rrobinIndex = 0
 			rand.Shuffle(len(m.rrobin), func(i, j int) { m.rrobin[i], m.rrobin[j] = m.rrobin[j], m.rrobin[i] })
 		}
 		// if the member is not in membership list, delete it from rrobin list
-		if _, ok := m.Members[m.rrobin[m.index].ID]; !ok {
-			m.rrobin = append(m.rrobin[:m.index], m.rrobin[m.index+1:]...)
+		if _, ok := m.Members[m.rrobin[m.rrobinIndex].ID]; !ok {
+			m.rrobin = append(m.rrobin[:m.rrobinIndex], m.rrobin[m.rrobinIndex+1:]...)
 			continue
 		}
 		// append to hostname
-		hostnames = append(hostnames, m.rrobin[m.index].GetName())
-		m.index++
+		hostnames = append(hostnames, m.rrobin[m.rrobinIndex].GetName())
+		m.rrobinIndex++
 		// if hostnames is full, break
-		if len(hostnames) == m.target || len(hostnames) == len(m.rrobin) {
+		if len(hostnames) == m.targetNumber || len(hostnames) == len(m.rrobin) {
 			break
 		}
 	}

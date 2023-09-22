@@ -33,6 +33,7 @@ heartbeat:
   port: "7140"
   interval: 700ms # send heartbeat every <interval> millisecond
   drop_rate: 0.0
+  introducer: "fa23-cs425-8701.cs.illinois.edu"
 failure_detect:
   interval: 1000ms # check failure every <interval> millisecond
   failure_timeout: 3000ms # set to failure if no heartbeat received for <timeout> millisecond
