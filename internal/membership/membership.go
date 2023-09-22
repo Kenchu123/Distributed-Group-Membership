@@ -24,7 +24,7 @@ type Membership struct {
 }
 
 // New creates a new membership
-func New(introducer string) (*Membership, error) {
+func New(introducer string, targetNumber int) (*Membership, error) {
 	member, err := NewMemberSelf()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a new membership: %w", err)
@@ -38,7 +38,7 @@ func New(introducer string) (*Membership, error) {
 		},
 		rrobin:       []*Member{},
 		rrobinIndex:  0,
-		targetNumber: 3,
+		targetNumber: targetNumber,
 		introducer:   introducer,
 	}, nil
 }
