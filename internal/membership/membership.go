@@ -17,10 +17,10 @@ type Membership struct {
 	ID      string             // ID of the node
 	Members map[string]*Member // map of members
 	mu      sync.Mutex         // mutex
-	robin   map[int]string     // round robin list
-	index   int                // round robin index
-	target  int                // number of targets
-	intro   bool               // whether the node is the introducer
+	rrobin  []*Member
+	index   int  // round robin index
+	target  int  // number of targets
+	intro   bool // whether the node is the introducer
 }
 
 // New creates a new membership
@@ -34,11 +34,11 @@ func New() (*Membership, error) {
 	}
 	return &Membership{ID: member.ID, Members: map[string]*Member{
 		member.ID: member,
-	}, 
-	robin: nil,
-	index: 0,
-	target: 3,
-	intro: strings.Contains(member.ID, "fa23-cs425-8701.cs.illinois.edu"),
+	},
+		rrobin: []*Member{},
+		index:  0,
+		target: 3,
+		intro:  strings.Contains(member.ID, "fa23-cs425-8701.cs.illinois.edu"),
 	}, nil
 }
 
@@ -208,41 +208,47 @@ func checkHostname(hostnames []string, hostname string) bool {
 func (m *Membership) GetHeartbeatTargetMembers(machines []config.Machine) []string {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	hostnames := []string{}
-	if m.robin == nil || len(m.robin) == 0 {
-		m.robin = map[int]string{}
-		i := 0
-		for _, machine := range machines {
-			m.robin[i] = machine.Hostname
-			i++
-		}
-		rand.Shuffle(len(m.robin), func(i, j int) { m.robin[i], m.robin[j] = m.robin[j], m.robin[i] })
+	// update rrobin list according to membership list
+	rrobinSet := map[string]bool{}
+	for _, member := range m.rrobin {
+		rrobinSet[member.ID] = true
 	}
-	if !m.intro && len(m.Members) == 1 {
+	for _, member := range m.Members {
+		// check if member is self
+		if member.ID == m.ID {
+			continue
+		}
+		// check if member is in rrobinSet
+		if _, ok := rrobinSet[member.ID]; ok {
+			continue
+		}
+		// add member to rrobinSet
+		rrobinSet[member.ID] = true
+		// insert member to rrobin list on index m.index
+		m.rrobin = append(m.rrobin[:m.index], append([]*Member{member}, m.rrobin[m.index:]...)...)
+	}
+	// case 1: if rrobin list is empty, return introducer
+	if len(m.rrobin) == 0 {
 		return []string{"fa23-cs425-8701.cs.illinois.edu"}
 	}
-	if len(m.Members) <= m.target {
-		for _, member := range m.Members {
-			if member.ID != m.ID {
-				hostnames = append(hostnames, member.GetName())
-			}
-		}	
-		return hostnames
-	}
-	candidates := map[string]string{}
-	for _, member := range m.Members {
-		candidates[member.GetName()] = member.ID
-	}
-	for  {
-		if _, ok := candidates[m.robin[m.index]]; ok && m.robin[m.index] != m.GetName() && !checkHostname(hostnames, m.robin[m.index]){
-			hostnames = append(hostnames, m.robin[m.index])
-		}
-		m.index++
-		if m.index >= len(m.robin) {
+	// case 2: if rrobin list is not empty, return m.target members
+	hostnames := []string{}
+	for {
+		// if m.index is out of range, reset m.index to 0
+		if m.index >= len(m.rrobin) {
 			m.index = 0
-			rand.Shuffle(len(m.robin), func(i, j int) { m.robin[i], m.robin[j] = m.robin[j], m.robin[i] })
+			rand.Shuffle(len(m.rrobin), func(i, j int) { m.rrobin[i], m.rrobin[j] = m.rrobin[j], m.rrobin[i] })
 		}
-		if len(hostnames) == m.target {
+		// if the member is not in membership list, delete it from rrobin list
+		if _, ok := m.Members[m.rrobin[m.index].ID]; !ok {
+			m.rrobin = append(m.rrobin[:m.index], m.rrobin[m.index+1:]...)
+			continue
+		}
+		// append to hostname
+		hostnames = append(hostnames, m.rrobin[m.index].GetName())
+		m.index++
+		// if hostnames is full, break
+		if len(hostnames) == m.target || len(hostnames) == len(m.rrobin) {
 			break
 		}
 	}
