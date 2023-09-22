@@ -19,6 +19,8 @@ type Membership struct {
 	mu      sync.Mutex         // mutex
 	robin   map[int]string     // round robin list
 	index   int                // round robin index
+	target  int                // number of targets
+	intro   bool               // whether the node is the introducer
 }
 
 // New creates a new membership
@@ -27,9 +29,17 @@ func New() (*Membership, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a new membership: %w", err)
 	}
+	if strings.Contains(member.ID, "fa23-cs425-8701.cs.illinois.edu") {
+		logrus.Infof("I am the introducer")
+	}
 	return &Membership{ID: member.ID, Members: map[string]*Member{
 		member.ID: member,
-	}, robin: nil, index: 0}, nil
+	}, 
+	robin: nil,
+	index: 0,
+	target: 3,
+	intro: strings.Contains(member.ID, "fa23-cs425-8701.cs.illinois.edu"),
+	}, nil
 }
 
 // NewEmpty creates a new empty membership
@@ -199,8 +209,6 @@ func (m *Membership) GetHeartbeatTargetMembers(machines []config.Machine) []stri
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	hostnames := []string{}
-	// TODO: introducers and algorithms for selecting heartbeat target members
-	// if there is no round robin list, create one to save the machines name
 	if m.robin == nil || len(m.robin) == 0 {
 		m.robin = map[int]string{}
 		i := 0
@@ -210,9 +218,24 @@ func (m *Membership) GetHeartbeatTargetMembers(machines []config.Machine) []stri
 		}
 		rand.Shuffle(len(m.robin), func(i, j int) { m.robin[i], m.robin[j] = m.robin[j], m.robin[i] })
 	}
-	// select the first 4 members
-	for i := 0; i < len(m.robin); i++ {
-		if m.robin[m.index] != m.GetName() {
+	if !m.intro && len(m.Members) == 1 {
+		return []string{"fa23-cs425-8701.cs.illinois.edu"}
+	}
+	if len(m.Members) <= m.target {
+		for _, member := range m.Members {
+			if member.ID != m.ID {
+				hostnames = append(hostnames, member.GetName())
+				logrus.Infof("heartbeat target: %s", member.GetName())
+			}
+		}	
+		return hostnames
+	}
+	candidates := map[string]string{}
+	for _, member := range m.Members {
+		candidates[member.GetName()] = member.ID
+	}
+	for  {
+		if _, ok := candidates[m.robin[m.index]]; ok && m.robin[m.index] != m.GetName() && !checkHostname(hostnames, m.robin[m.index]){
 			hostnames = append(hostnames, m.robin[m.index])
 		}
 		m.index++
@@ -220,48 +243,11 @@ func (m *Membership) GetHeartbeatTargetMembers(machines []config.Machine) []stri
 			m.index = 0
 			rand.Shuffle(len(m.robin), func(i, j int) { m.robin[i], m.robin[j] = m.robin[j], m.robin[i] })
 		}
-		if len(hostnames) == 4 {
+		if len(hostnames) == m.target {
 			break
 		}
 	}
 	return hostnames
-	// get the alive member list
-	// aliveMembers := map[string]bool{}
-	// for _, member := range m.Members {
-	// 	if member.State == ALIVE && member.ID != m.ID {
-	// 		aliveMembers[member.GetName()] = true
-	// 	}
-	// }
-	// alive := len(aliveMembers)
-	// if there are less than or equal to 3 alive members, return all alive members
-	// if alive <= 3 {
-	// 	for i := 0; i < len(m.robin); i++ {
-	// 		if _, ok := m.Members[m.robin[i]]; ok && m.robin[i] != m.GetName() {
-	// 			if m.Members[m.robin[i]].State == ALIVE {
-	// 				hostnames = append(hostnames, m.robin[i])
-	// 			}
-	// 		}
-	// 	}
-	// 	return hostnames
-	// }
-	// get the first 3 alive members in the round robin list, if index is out of bound, reset index to 0 and shuffle the list and repick until there are 3 alive members
-	// for {
-	// 	// check if the hostname already exists in the list
-	// 	if m.Members[m.robin[m.index]].State == ALIVE && m.robin[m.index] != m.GetName() {
-	// 		if !checkHostname(hostnames, m.robin[m.index]) {
-	// 			hostnames = append(hostnames, m.robin[m.index])
-	// 		}
-	// 	}
-	// 	m.index++
-	// 	if m.index >= len(m.robin) {
-	// 		m.index = 0
-	// 		rand.Shuffle(len(m.robin), func(i, j int) { m.robin[i], m.robin[j] = m.robin[j], m.robin[i] })
-	// 	}
-	// 	if len(hostnames) == 3 {
-	// 		break
-	// 	}
-	// }
-	// return hostnames
 }
 
 // SerializedMember is a struct that contains the heartbeat, state, and incarnation of a member
