@@ -107,7 +107,6 @@ Flags:
 ./bin/msl disable suspicion [flags]
 
 Flags:
-  -e, --enable   enable or disable suspicion
   -h, --help     help for suspicion
   -c, --config string          path to config file (default ".msl/config.yml")
   -m, --machine-regex string   regex for machines to join (e.g. "0[1-9]") (default ".*")
