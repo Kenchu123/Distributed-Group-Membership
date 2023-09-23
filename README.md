@@ -32,85 +32,88 @@ Flags:
   -p, --port string     port to listen on (default "7132")
 ```
 
-### member
+### Join
 
-#### Join
-
-`member join` command tells the machine to join the group.
+`join` command tells the machine to join the group.
 
 ```bash
-./bin/msl member join [flags]
+./bin/msl join [flags]
 
 Flags:
   -h, --help   help for join
-
-Global Flags:
   -c, --config string          path to config file (default ".msl/config.yml")
   -m, --machine-regex string   regex for machines to join (e.g. "0[1-9]") (default ".*")
 ```
 
-#### Leave
+### Leave
 
-`member leave` command tells the machine to leave the group.
+`leave` command tells the machine to leave the group.
 
 ```bash
-./bin/msl member leave [flags]
+./bin/msl leave [flags]
 
 Flags:
   -h, --help   help for leave
-
-Global Flags:
   -c, --config string          path to config file (default ".msl/config.yml")
   -m, --machine-regex string   regex for machines to join (e.g. "0[1-9]") (default ".*")
 ```
 
-#### Fail
+### Fail
 
-`member fail` command tells the machine's process to fail.
+`fail` command tells the machine's process to fail.
 
 ```bash
-./bin/msl member fail [flags]
+./bin/msl fail [flags]
 
 Flags:
   -h, --help   help for fail
-
-Global Flags:
   -c, --config string          path to config file (default ".msl/config.yml")
   -m, --machine-regex string   regex for machines to join (e.g. "0[1-9]") (default ".*")
 ```
 
-#### List
+### List the Membership List
 
-`member list` command lists all members in the group.
+`list_mem` command lists the membership list.
 
 ```bash
-./bin/msl member list [flags]
+./bin/msl list_mem [flags]
 
 Flags:
-  -h, --help   help for list
+  -h, --help   help for list_mem
+  -c, --config string          path to config file (default ".msl/config.yml")
+  -m, --machine-regex string   regex for machines to join (e.g. "0[1-9]") (default ".*")
+```
 
-Global Flags:
+### List Self's ID
+
+`list_self` command lists self's ID.
+
+```bash
+./bin/msl list_self [flags]
+
+Flags:
+  -h, --help   help for list_self
+  -c, --config string          path to config file (default ".msl/config.yml")
+  -m, --machine-regex string   regex for machines to join (e.g. "0[1-9]") (default ".*")
+```
+
+### Enable/Disable Suspicion
+
+`enable suspicion` command enables suspicion.
+`disable suspicion` command disables suspicion.
+
+```bash
+./bin/msl enable suspicion [flags]
+./bin/msl disable suspicion [flags]
+
+Flags:
+  -e, --enable   enable or disable suspicion
+  -h, --help     help for suspicion
   -c, --config string          path to config file (default ".msl/config.yml")
   -m, --machine-regex string   regex for machines to join (e.g. "0[1-9]") (default ".*")
 ```
 
 ### Config
-
-#### Set Suspicion
-
-`config set-suspicion` command enables or disables suspicion.
-
-```bash
-./bin/msl config set-suspicion [flags]
-
-Flags:
-  -e, --enable   enable or disable suspicion
-  -h, --help     help for suspicion
-
-Global Flags:
-  -c, --config string          path to config file (default ".msl/config.yml")
-  -m, --machine-regex string   regex for machines to join (e.g. "0[1-9]") (default ".*")
-```
 
 #### Set DropRate
 

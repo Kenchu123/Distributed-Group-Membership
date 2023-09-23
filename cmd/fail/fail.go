@@ -1,4 +1,4 @@
-package member
+package fail
 
 import (
 	"github.com/sirupsen/logrus"
@@ -6,6 +6,9 @@ import (
 	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/command"
 	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/command/client"
 )
+
+var configPath string
+var machineRegex string
 
 var failCmd = &cobra.Command{
 	Use:   "fail",
@@ -27,4 +30,13 @@ func fail(cmd *cobra.Command, args []string) {
 		}
 		logrus.Printf("%s: %s\n", r.Hostname, r.Message)
 	}
+}
+
+func New() *cobra.Command {
+	return failCmd
+}
+
+func init() {
+	failCmd.PersistentFlags().StringVarP(&configPath, "config", "c", ".msl/config.yml", "path to config file")
+	failCmd.PersistentFlags().StringVarP(&machineRegex, "machine-regex", "m", ".*", "regex for machines to join (e.g. \"0[1-9]\")")
 }

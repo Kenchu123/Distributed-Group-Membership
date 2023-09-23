@@ -1,19 +1,16 @@
-package config
+package disable
 
 import (
-	"strconv"
-
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/command"
 	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/command/client"
 )
 
-var enable bool
 var suspicionCmd = &cobra.Command{
-	Use:   "set-suspicion",
-	Short: "Set suspicion",
-	Long:  `Set suspicion`,
+	Use:   "suspicion",
+	Short: "disable suspicion",
+	Long:  `disable suspicion`,
 	Run:   setSuspicion,
 }
 
@@ -22,7 +19,7 @@ func setSuspicion(cmd *cobra.Command, args []string) {
 	if err != nil {
 		logrus.Fatalf("failed to create command client: %v", err)
 	}
-	results := client.Run([]string{string(command.SUSPICION), strconv.FormatBool(enable)})
+	results := client.Run([]string{string(command.SUSPICION), "false"})
 	for _, r := range results {
 		if r.Err != nil {
 			logrus.Errorf("failed to send command to %s: %v\n", r.Hostname, r.Err)
@@ -30,8 +27,4 @@ func setSuspicion(cmd *cobra.Command, args []string) {
 		}
 		logrus.Printf("%s: %s\n", r.Hostname, r.Message)
 	}
-}
-
-func init() {
-	suspicionCmd.Flags().BoolVarP(&enable, "enable", "e", false, "enable or disable suspicion")
 }

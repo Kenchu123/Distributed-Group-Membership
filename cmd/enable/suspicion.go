@@ -1,4 +1,4 @@
-package member
+package enable
 
 import (
 	"github.com/sirupsen/logrus"
@@ -7,19 +7,19 @@ import (
 	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/command/client"
 )
 
-var joinCmd = &cobra.Command{
-	Use:   "join",
-	Short: "Join the group",
-	Long:  `Join the group`,
-	Run:   join,
+var suspicionCmd = &cobra.Command{
+	Use:   "suspicion",
+	Short: "enable suspicion",
+	Long:  `enable suspicion`,
+	Run:   setSuspicion,
 }
 
-func join(cmd *cobra.Command, args []string) {
+func setSuspicion(cmd *cobra.Command, args []string) {
 	client, err := client.New(configPath, machineRegex)
 	if err != nil {
 		logrus.Fatalf("failed to create command client: %v", err)
 	}
-	results := client.Run([]string{string(command.JOIN)})
+	results := client.Run([]string{string(command.SUSPICION), "true"})
 	for _, r := range results {
 		if r.Err != nil {
 			logrus.Errorf("failed to send command to %s: %v\n", r.Hostname, r.Err)

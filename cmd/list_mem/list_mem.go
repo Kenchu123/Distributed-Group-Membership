@@ -1,4 +1,4 @@
-package member
+package list_mem
 
 import (
 	"github.com/sirupsen/logrus"
@@ -7,14 +7,17 @@ import (
 	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/command/client"
 )
 
+var configPath string
+var machineRegex string
+
 var listCmd = &cobra.Command{
-	Use:   "list",
+	Use:   "list_mem",
 	Short: "List membershiplist",
 	Long:  `List membershiplist in json format`,
-	Run:   list,
+	Run:   list_mem,
 }
 
-func list(cmd *cobra.Command, args []string) {
+func list_mem(cmd *cobra.Command, args []string) {
 	client, err := client.New(configPath, machineRegex)
 	if err != nil {
 		logrus.Fatalf("failed to create command client: %v", err)
@@ -27,4 +30,13 @@ func list(cmd *cobra.Command, args []string) {
 		}
 		logrus.Printf("%s: %s\n", r.Hostname, r.Message)
 	}
+}
+
+func New() *cobra.Command {
+	return listCmd
+}
+
+func init() {
+	listCmd.PersistentFlags().StringVarP(&configPath, "config", "c", ".msl/config.yml", "path to config file")
+	listCmd.PersistentFlags().StringVarP(&machineRegex, "machine-regex", "m", ".*", "regex for machines to join (e.g. \"0[1-9]\")")
 }

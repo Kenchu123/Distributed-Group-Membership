@@ -26,10 +26,11 @@ type Machine struct {
 }
 
 type Heartbeat struct {
-	Port       string        `yaml:"port"`       // UDP port for heartbeat
-	Interval   time.Duration `yaml:"interval"`   // send heartbeat every <interval> millisecond
-	DropRate   float32       `yaml:"drop_rate"`  // DropRate of the udp packet
-	Introducer string        `yaml:"introducer"` // Introducer's hostname
+	Port         string        `yaml:"port"`         // UDP port for heartbeat
+	Interval     time.Duration `yaml:"interval"`     // send heartbeat every <interval> millisecond
+	DropRate     float32       `yaml:"drop_rate"`    // DropRate of the udp packet
+	Introducer   string        `yaml:"introducer"`   // Introducer's hostname
+	TargetNumber int           `yaml:"targetNumber"` // number of target machines
 }
 
 type FailureDetect struct {

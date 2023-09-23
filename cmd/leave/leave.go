@@ -1,4 +1,4 @@
-package member
+package leave
 
 import (
 	"github.com/sirupsen/logrus"
@@ -6,6 +6,9 @@ import (
 	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/command"
 	"gitlab.engr.illinois.edu/ckchu2/cs425-mp2/internal/command/client"
 )
+
+var configPath string
+var machineRegex string
 
 var leaveCmd = &cobra.Command{
 	Use:   "leave",
@@ -27,4 +30,13 @@ func leave(cmd *cobra.Command, args []string) {
 		}
 		logrus.Printf("%s: %s\n", r.Hostname, r.Message)
 	}
+}
+
+func New() *cobra.Command {
+	return leaveCmd
+}
+
+func init() {
+	leaveCmd.PersistentFlags().StringVarP(&configPath, "config", "c", ".msl/config.yml", "path to config file")
+	leaveCmd.PersistentFlags().StringVarP(&machineRegex, "machine-regex", "m", ".*", "regex for machines to join (e.g. \"0[1-9]\")")
 }
