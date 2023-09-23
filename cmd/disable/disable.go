@@ -8,8 +8,8 @@ var configPath string
 var machineRegex string
 var disableCmd = &cobra.Command{
 	Use:   "disable",
-	Short: "Disable suspicion",
-	Long:  `Disable suspicion`,
+	Short: "Disable",
+	Long:  `Disable`,
 }
 
 func New() *cobra.Command {
