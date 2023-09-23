@@ -166,6 +166,36 @@ docker exec -it dev-m[1-10] /bin/ash
 $ go run main.go [command] [flags]
 ```
 
+## Running on VMs
+
+### Prerequisites
+
+- `msl` binary in each VM home directory
+- [tmux](https://github.com/tmux/tmux) installed
+
+### Run Serve
+
+Use tmux to run `msl serve` in background on each VM.
+
+```bash
+# run all msl process
+./vm_run_all.sh
+```
+
+### Run Commands
+
+```bash
+# ssh to one machine
+./msl [command] [flags]
+```
+
+### Kill
+
+```bash
+# kill all msl process
+./vm_kill_all.sh
+```
+
 ## Contributor
 
 - [Che-Kuang Chu (ckchu2)](https://gitlab.engr.illinois.edu/ckchu2)
