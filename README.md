@@ -1,4 +1,6 @@
-# CS425 Distributed Systems MP1
+# Distributed Group Membership
+
+UIUC CS425, Distributed Systems: Fall 2023 Machine Programming 2
 
 ## Description
 
