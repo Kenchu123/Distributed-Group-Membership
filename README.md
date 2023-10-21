@@ -1,6 +1,6 @@
 # Distributed Group Membership
 
-UIUC CS425, Distributed Systems: Fall 2023 Machine Problem 2
+UIUC CS425, Distributed Systems: Fall 2023 Machine Programming 2
 
 ## Description
 
